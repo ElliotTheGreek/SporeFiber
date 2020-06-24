@@ -25,6 +25,15 @@ export default function SideBarScreen (props) {
 
   loadSettings();
 
+  let toggleServerRunning = async () => {
+    if (props.server.getServerRunning()) {
+      props.server.stopServer();
+    } else {
+      props.server.startServer();
+    }
+    props.navigation.closeDrawer();
+    props.navigation.openDrawer()
+  }
 
   return (
     <DrawerContentScrollView {...props}>
@@ -88,24 +97,16 @@ export default function SideBarScreen (props) {
             onPress={() => {}}
           />
         </Drawer.Section>
-        <Drawer.Section title="Run Mode">
-          <TouchableRipple onPress={() => { toggleReconnectOthers(); }}>
+        <Drawer.Section title={props.server.getServerStatus()}>
+          <TouchableRipple onPress={() => { toggleServerRunning(); }}>
             <View style={styles.preference}>
-              <Text>Reconnect Others{Boolean(reconnectOthers)}</Text>
+              <Text>Server Running {Boolean(props.server.getServerRunning())}</Text>
               <View pointerEvents="none">
-                <Switch value={Boolean(reconnectOthers)} />
+                <Switch value={Boolean(props.server.getServerRunning())} />
               </View>
             </View>
           </TouchableRipple>
 
-          <TouchableRipple onPress={() => {}}>
-            <View style={styles.preference}>
-              <Text>RTL</Text>
-              <View pointerEvents="none">
-                <Switch value={true} />
-              </View>
-            </View>
-          </TouchableRipple>
         </Drawer.Section>
       </View>
     </DrawerContentScrollView>

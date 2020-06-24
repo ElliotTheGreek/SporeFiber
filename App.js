@@ -22,7 +22,7 @@ export default function App() {
   if (!isLoadingComplete) {
     return null;
   } else {
-    Server.startServer();
+    Server.appStart();
     const theme = {
       ...DefaultTheme,
       roundness: 2,
@@ -36,10 +36,10 @@ export default function App() {
       <PaperProvider theme={theme}>
         <NavigationContainer>
           <Drawer.Navigator 
-            drawerContent={ props => <SideBarScreen {...props} />}
+            drawerContent={ props => <SideBarScreen server={Server} {...props} />}
             initialRouteName="TabStack"
           >
-            <Drawer.Screen name="TabStack" component={TabStack} />
+            <Drawer.Screen name="TabStack" server={Server} component={TabStack} />
             {/* Stand alone components and pages below */}
             <Drawer.Screen name="ProfileScreen" component={ProfileScreen} />
             <Drawer.Screen name="NewPost" component={NewPostScreen} />

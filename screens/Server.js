@@ -5,13 +5,31 @@ import socketIO from 'socket.io-client';
 
 var currentIp = "Resolving...";
 var currentPort = "Resolving...";
+var serverRunning = false;
+var serverStatus = "Server off";
 var initialized = false;
 var socket = null;
 
 const ServerHelper = {
 
+  appStart: function(){
+    console.log("Server Starting...");
+    this.serverStatus = "Server off";
+    this.serverRunning = false;
+    this.refreshIp();
+  },
   startServer: function(){
     console.log("Server Starting...");
+    this.serverStatus = "Server starting up...";
+    this.serverRunning = true;
+    this.serverInit();
+    this.refreshIp();
+  },
+  stopServer: function(){
+    console.log("Server Stopping...");
+    this.serverStatus = "Server off";
+    this.serverRunning = false;
+    this.serverDisconnect();
     this.refreshIp();
   },
   refreshIp: function(){
@@ -21,13 +39,13 @@ const ServerHelper = {
       .then(ip => {
         if (!initialized) {
           this.currentIp = ip;
-          this.serverInit();
+//          this.serverInit();
         } else if (this.currentIp != ip) {
           this.currentIp = ip;
           this.ipChanged();
         }
         this.currentIp = ip;
-        console.log("Current IP:" + ip);
+        console.log(this.serverRunning + "Current IP:" + ip);
       })
       .catch(error => {
         console.log(error);
@@ -39,32 +57,44 @@ const ServerHelper = {
   getPort: function() {
     return this.currentPort;
   }, 
+  getServerRunning: function() {
+    return this.serverRunning;
+  },
+  getServerStatus: function() {
+    return this.serverStatus;
+  },
   ipChanged: function() {
     console.log("IP has changed:" + this.currentIp);
   },
   serverInit: function() {
     initialized = true;
     console.log("Server Init:" + this.currentIp);
-// Initialize Socket IO:
-    socket = socketIO(this.currentIp, {
+    this.socket = socketIO(this.currentIp, {
       transports: ['websocket'],
       jsonp: false
     });
 
-    socket.connect();
+    this.socket.connect();
     
-    socket.on('connect', () => {
+    this.socket.on('connect', () => {
       console.log('Connect');
     });
 
-    socket.on('disconnect', () => {
+    this.socket.on('disconnect', () => {
       console.log('connection to server lost.');
     });
     
-    socket.on('newMessage', (message) => {
+    this.socket.on('newMessage', (message) => {
       console.log("Got Message" + message);
     });
 
+    this.serverStatus = "Server running...";
+  },
+  serverDisconnect: function() {
+    if (this.socket) {
+      console.log("Disconnceting Socket");
+      this.socket.disconnect();
+    }
   }
 }
 

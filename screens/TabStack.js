@@ -48,6 +48,7 @@ export default function TabStack(props) {
       <Tab.Screen
         name="Feed"
         component={FeedScreen}
+        goat="cheese"
         options={{ headerTitle: 'FeedScreen' }}
       />
       <Tab.Screen
