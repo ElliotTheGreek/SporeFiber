@@ -16,7 +16,6 @@ export default function SideBarScreen (props) {
   let loadSettings = async () => {
     try {
       const _username = await AsyncStorage.getItem('username');
-      console.log("Load Username:" + _username);
       setUsername(_username);
     } catch (error) {
       console.log(error);
@@ -32,7 +31,7 @@ export default function SideBarScreen (props) {
       props.server.startServer();
     }
     props.navigation.closeDrawer();
-    props.navigation.openDrawer()
+    props.navigation.openDrawer();
   }
 
   return (
@@ -97,16 +96,21 @@ export default function SideBarScreen (props) {
             onPress={() => {}}
           />
         </Drawer.Section>
-        <Drawer.Section title={props.server.getServerStatus()}>
-          <TouchableRipple onPress={() => { toggleServerRunning(); }}>
+        <Drawer.Section title={props.serverStatus}>
+          <View style={styles.preference}>
+            <Text>{props.currentIp}:{props.currentPort}</Text>
+          </View>
+          <TouchableRipple onPress={() => { props.toggleServer() }}>
             <View style={styles.preference}>
-              <Text>Server Running {Boolean(props.server.getServerRunning())}</Text>
+              <Text>Server Running {Boolean(props.serverRunning)}</Text>
               <View pointerEvents="none">
-                <Switch value={Boolean(props.server.getServerRunning())} />
+                <Switch value={Boolean(props.serverRunning)} />
               </View>
             </View>
           </TouchableRipple>
-
+          <View style={styles.preference}>
+            <Text>{props.serverLastMessage}</Text>
+          </View>
         </Drawer.Section>
       </View>
     </DrawerContentScrollView>

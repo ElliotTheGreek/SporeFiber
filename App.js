@@ -13,42 +13,130 @@ import ProfileScreen from './screens/ProfileScreen';
 import NewPostScreen from './screens/NewPostScreen';
 import NewConnectionScreen from './screens/NewConnectionScreen';
 import PreferencesScreen from './screens/PreferencesScreen';
-import Server from './screens/Server';
+import publicIP from 'react-native-public-ip';
+import TcpSocket from 'react-native-tcp-socket';
+
 export default function App() {
   const isLoadingComplete = useCachedResources();
   const Drawer = createDrawerNavigator();
 
+  const [serverStatus, setServerStatus] = React.useState("");
+  const [serverRunning, setServerRunning] = React.useState(false);
+  const [serverLastMessage, setServerLastMessage] = React.useState("");
+
+  const [currentIp, setCurrentIp] = React.useState("unknown");
+  const [currentPort, setCurrentPort] = React.useState("unknown");
+
+  const server = TcpSocket.createServer(function(socket) {
+    socket.on('data', (data) => {
+      socket.write('Echo server', data);
+    });
+   
+    socket.on('error', (error) => {
+      console.log('An error ocurred with client socket ', error);
+    });
+   
+    socket.on('close', (error) => {
+      console.log('Closed connection with ', socket.address());
+    });
+  }).listen(3232, '0.0.0.0');
+   
+  server.on('error', (error) => {
+    console.log('An error ocurred with the server', error);
+  });
+   
+  server.on('close', () => {
+    console.log('Server closed connection');
+  });
+
+  React.useEffect(() => {
+
+    appStarts();
+  }, []);
+
+  function appStarts() {
+    refreshIp();
+    startServerRequest();
+  }
+
+
+  function refreshIp() {
+    setCurrentIp("Resolving...");
+    setCurrentPort("180005");
+    publicIP()
+      .then(ip => {
+        setCurrentIp(ip);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  function updateServerStatus(status) {
+    setServerStatus(status);
+    console.log(status);
+  }
+
+  function toggleServer() {
+    if (serverRunning){
+      stopServerRequest();
+    } else {
+      startServerRequest();
+    }
+  }
+
+  function onSocketConnect(s) {
+    setServerLastMessage("Connected...");
+  }
+
+  function startServerRequest() {
+    refreshIp();
+    setServerLastMessage("Starting...");
+    updateServerStatus("Starting up...");
+
+    setServerLastMessage("Waiting...");
+
+    setTimeout(() => { startServer() }, 2000);
+  }
+
+  function stopServerRequest() {
+    setServerLastMessage(" ");
+    updateServerStatus("Stopping server...");
+
+    setServerRunning(false);
+    setTimeout(() => { stopServer() }, 2000);
+  }
+
+  function startServer() {
+    setServerRunning(true);
+    updateServerStatus("Server Active");
+  }
+
+  function stopServer() {
+    setServerRunning(false);
+    updateServerStatus("Server Off");
+  }
 
   if (!isLoadingComplete) {
     return null;
   } else {
-    Server.appStart();
-    const theme = {
-      ...DefaultTheme,
-      roundness: 2,
-      colors: {
-        ...DefaultTheme.colors,
-        primary: '#f5f6f7',
-        accent: '#f1c40f',
-      },
-    };
+
     return (
-      <PaperProvider theme={theme}>
+      <PaperProvider>
         <NavigationContainer>
           <Drawer.Navigator 
-            drawerContent={ props => <SideBarScreen server={Server} {...props} />}
-            initialRouteName="TabStack"
-          >
-            <Drawer.Screen name="TabStack" server={Server} component={TabStack} />
+            drawerContent={ props => <SideBarScreen serverLastMessage={serverLastMessage} currentIp={currentIp} currentPort={currentPort} serverRunning={serverRunning} serverStatus={serverStatus} toggleServer={toggleServer} {...props} />}
+            initialRouteName="TabStack" >
+            <Drawer.Screen name="TabStack" component={TabStack} />
             {/* Stand alone components and pages below */}
             <Drawer.Screen name="ProfileScreen" component={ProfileScreen} />
             <Drawer.Screen name="NewPost" component={NewPostScreen} />
             <Drawer.Screen name="NewConnection" component={NewConnectionScreen} />
             <Drawer.Screen name="PreferencesScreen" component={PreferencesScreen} />
-
           </Drawer.Navigator>
         </NavigationContainer>
       </PaperProvider>
     );
   }
 }
+

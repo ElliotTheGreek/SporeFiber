@@ -9,28 +9,34 @@ var serverRunning = false;
 var serverStatus = "Server off";
 var initialized = false;
 var socket = null;
+var drawer = null;
 
 const ServerHelper = {
 
   appStart: function(){
     console.log("Server Starting...");
-    this.serverStatus = "Server off";
+    this.serverStatus = "Booting...";
     this.serverRunning = false;
     this.refreshIp();
   },
   startServer: function(){
     console.log("Server Starting...");
     this.serverStatus = "Server starting up...";
-    this.serverRunning = true;
-    this.serverInit();
-    this.refreshIp();
+// simulate initializing
+    setTimeout(() => { this.serverInit(); this.refreshIp(); }, 2000);
   },
   stopServer: function(){
     console.log("Server Stopping...");
-    this.serverStatus = "Server off";
+    this.serverStatus = "Server stopping...";
     this.serverRunning = false;
     this.serverDisconnect();
     this.refreshIp();
+// simulate deinitializing
+    setTimeout(() => { this.serverStatus = "Server off"; }, 2000);
+    
+  },
+  setDrawer: function(d){
+    this.drawer = d;
   },
   refreshIp: function(){
     console.log("Refresh IP");
@@ -89,6 +95,8 @@ const ServerHelper = {
     });
 
     this.serverStatus = "Server running...";
+    this.serverRunning = true;
+//    this.drawer.navigation.closeDrawer();
   },
   serverDisconnect: function() {
     if (this.socket) {

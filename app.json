@@ -23,10 +23,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ios.sporefiber"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
-    }
+    },
+    "android": {
+      "package": "android.sporefiber"
+    },
+    "entryPoint": "node_modules/expo/AppEntry.js"
   }
 }
