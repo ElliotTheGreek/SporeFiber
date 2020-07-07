@@ -15,6 +15,7 @@ import NewConnectionScreen from './screens/NewConnectionScreen';
 import PreferencesScreen from './screens/PreferencesScreen';
 import publicIP from 'react-native-public-ip';
 import TcpSocket from 'react-native-tcp-socket';
+import io from 'socket.io-client';
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -27,7 +28,7 @@ export default function App() {
   const [currentIp, setCurrentIp] = React.useState("unknown");
   const [currentPort, setCurrentPort] = React.useState("unknown");
 
-  const server = TcpSocket.createServer(function(socket) {
+/*  const server = TcpSocket.createServer(function(socket) {
     socket.on('data', (data) => {
       socket.write('Echo server', data);
     });
@@ -39,18 +40,22 @@ export default function App() {
     socket.on('close', (error) => {
       console.log('Closed connection with ', socket.address());
     });
-  }).listen(3232, '0.0.0.0');
+  });
    
   server.on('error', (error) => {
-    console.log('An error ocurred with the server', error);
+    console.log('An error ocurred with the server:', error);
   });
    
   server.on('close', () => {
     console.log('Server closed connection');
-  });
+  }); */
+
+
+
+
 
   React.useEffect(() => {
-
+//    console.log(process.env.PORT);
     appStarts();
   }, []);
 
@@ -58,7 +63,6 @@ export default function App() {
     refreshIp();
     startServerRequest();
   }
-
 
   function refreshIp() {
     setCurrentIp("Resolving...");
@@ -95,11 +99,23 @@ export default function App() {
     updateServerStatus("Starting up...");
 
     setServerLastMessage("Waiting...");
+  /*  server.listen({
+      port: 8443,
+      host: "localhost",
+      tls: false,
+      tlsCheckValidity: false
+      // tlsCheckValidity: false, // Disable validity checking
+      // tlsCert: require('./selfmade.pem') // Self-signed certificate
+    }); */
 
-    setTimeout(() => { startServer() }, 2000);
+    startServer();
+    //setTimeout(() => { startServer() }, 2000);
   }
 
   function stopServerRequest() {
+//    if (server) {
+//      server.destroy(); 
+//    }
     setServerLastMessage(" ");
     updateServerStatus("Stopping server...");
 
@@ -109,7 +125,54 @@ export default function App() {
 
   function startServer() {
     setServerRunning(true);
-    updateServerStatus("Server Active");
+    updateServerStatus("Server Active:");
+    /*
+    const socket = io('192.168.1.253:7000', {   rejectUnauthorized: false });
+    socket.on('connect', function(){
+      console.log("Client Socket Connected");
+    });
+    socket.on('event', function(data){
+      console.log("Client Socket Evemt", data);
+
+    });
+    socket.on('connect_error', function(error){
+      console.log("Client Connect Error", error);
+
+    });
+    socket.on('disconnect', function(){
+      console.log("Client Socket Disconnected");
+    });
+
+        socket.connect();
+    // Create socket
+
+  */
+// Create socket
+  const client = TcpSocket.createConnection({
+    port: 7000,
+    host: '192.168.1.253',
+    tls: true,
+    // tlsCheckValidity: false, // Disable validity checking
+    // tlsCert: require('./selfmade.pem') // Self-signed certificate
+});
+   
+  client.on('data', function(data) {
+    console.log('message was received', data);
+  });
+   
+  client.on('error', function(error) {
+    console.log(error);
+  });
+   
+  client.on('close', function(){
+    console.log('Connection closed!');
+  });
+   
+  // Write on the socket
+  client.write('Hello server!');
+   
+  // Close socket
+  client.destroy();
   }
 
   function stopServer() {
